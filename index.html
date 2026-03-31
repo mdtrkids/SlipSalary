@@ -188,11 +188,11 @@
         const sheetNames = [
             "เงินเดือน", "ภาษี", "ประกันสังคม", "กยศ", "ค่าตำแหน่ง", "ค่าน้ำมัน", "ค่าโทรศัพท์", 
             "ล่วงเวลา", "Intensive", "Bonus", "เบี้ยขยัน", "ค่าคอม", "ค่าอาหาร", 
-            "ขาดงาน", "เบิกล่วงหน้า", "เงินสะสม"
+            "ขาดงาน", "เบิกล่วงหน้า", "เงินสะสม", "เงินยืมบริษัท"
         ];
 
         const incomeSheets = ["เงินเดือน", "ค่าตำแหน่ง", "ค่าน้ำมัน", "ค่าโทรศัพท์", "ล่วงเวลา", "Intensive", "Bonus", "เบี้ยขยัน", "ค่าคอม", "ค่าอาหาร"];
-        const deductionSheets = ["ภาษี", "ประกันสังคม", "กยศ", "ขาดงาน", "เบิกล่วงหน้า", "เงินสะสม"];
+        const deductionSheets = ["ภาษี", "ประกันสังคม", "กยศ", "ขาดงาน", "เบิกล่วงหน้า", "เงินสะสม", "เงินยืมบริษัท"];
 
         let payslipData = { TR: [], ODF: [] };
         let currentIndices = { TR: 0, ODF: 0 };
@@ -469,7 +469,8 @@
                             'เงินสะสม': 'providentFund', 
                             'ภาษี': 'tax', 
                             'ประกันสังคม': 'socialSecurity',
-                            'กยศ': 'studentLoan' 
+                            'กยศ': 'studentLoan' ,
+	          'เงินยืมบริษัท': 'companyLoan'
                         };
                         
                         for (const sheetName in ytdSheets) {
@@ -553,11 +554,24 @@
                 ? deductionItems.map(d => `<tr><td>${d.item}</td><td class="amount">${formatNumber(d.amount)}</td></tr>`).join('')
                 : '<tr><td>ไม่มีรายการ</td><td class="amount">0.00</td></tr>';
 
-            const mainSectionHTML = `
-                <div class="main-section">
-                    <div class="data-box"><h3>รายการได้</h3><table>${incomeRows}</table></div>
-                    <div class="data-box"><h3>รายการหัก</h3><table>${deductionRows}</table></div>
-                </div>`;
+            // --- ส่วนที่ปรับปรุงใหม่: กรองรายการสะสมที่เป็น 0 ออก ---
+            const ytdList = [
+                { label: 'รวมรายรับทั้งหมดต่อปี', val: ytdData.totalIncome },
+                { label: 'เงินสะสมพนักงานรวม', val: ytdData.providentFund },
+                { label: 'ภาษีสะสมรวม', val: ytdData.tax },
+                { label: 'ประกันสังคมสะสมรวม', val: ytdData.socialSecurity },
+                { label: 'กยศ. สะสมรวม', val: ytdData.studentLoan },
+                { label: 'เงินยืมบริษัทสะสมรวม', val: ytdData.companyLoan }
+            ].filter(item => item.val > 0);
+
+            const ytdRows = ytdList.map(item => 
+                `<tr><td>${item.label}</td><td class="amount">${formatNumber(item.val)}</td></tr>`
+            ).join('');
+
+            const ytdSection = ytdList.length > 0 
+                ? `<div class="ytd-summary"><h3>ข้อมูลสะสมต่อปี</h3><table>${ytdRows}</table></div>` 
+                : '';
+            // --------------------------------------------------
 
             return `
                 <div class="payslip-card" data-employee-name="${fullName}">
@@ -574,20 +588,17 @@
                         <div class="detail-item"><span class="label">วันที่จ่าย:</span> <span class="value payslip-payment-date">${paymentInfo.fullDate}</span></div>
                     </div>
                     
-                    ${mainSectionHTML}
+                    <div class="main-section">
+                        <div class="data-box"><h3>รายการได้</h3><table>${incomeRows}</table></div>
+                        <div class="data-box"><h3>รายการหัก</h3><table>${deductionRows}</table></div>
+                    </div>
 
                     <div class="summary-footer">
                         <div class="summary-item"><div class="label">รวมเงินได้</div><div class="value">${formatNumber(totals.income)}</div></div>
                         <div class="summary-item"><div class="label">รวมเงินหัก</div><div class="value">${formatNumber(totals.deduction)}</div></div>
                         <div class="summary-item"><div class="label">รายรับสุทธิ</div><div class="value net-value">${formatNumber(totals.net)}</div></div>
                     </div>
-                     <div class="ytd-summary"><h3>ข้อมูลสะสมต่อปี</h3><table>
-                        <tr><td>รวมรายรับทั้งหมดต่อปี</td><td class="amount">${formatNumber(ytdData.totalIncome)}</td></tr>
-                        <tr><td>เงินสะสมพนักงานรวม</td><td class="amount">${formatNumber(ytdData.providentFund)}</td></tr>
-                        <tr><td>ภาษีสะสมรวม</td><td class="amount">${formatNumber(ytdData.tax)}</td></tr>
-                        <tr><td>ประกันสังคมสะสมรวม</td><td class="amount">${formatNumber(ytdData.socialSecurity)}</td></tr>
-                        <tr><td>กยศ. สะสมรวม</td><td class="amount">${formatNumber(ytdData.studentLoan)}</td></tr>
-                    </table></div>
+                    ${ytdSection}
                 </div>`;
         }
         
