@@ -461,7 +461,7 @@
                             net: total_income - total_deduction
                         };
                         
-                        const ytdSheets = { 'เงินสะสม': 'providentFund', 'ภาษี': 'tax', 'ประกันสังคม': 'socialSecurity' };
+                        const ytdSheets = { 'เงินสะสม': 'providentFund', 'ภาษี': 'tax', 'ประกันสังคม': 'socialSecurity','กยศ': 'studentLoan' };
                         const totalColumnClean = cleanString('รวมทั้งสิ้น');
                         let totalYtdIncome = 0;
                         
@@ -557,6 +557,7 @@
                         <tr><td>เงินสะสมพนักงานรวม</td><td class="amount">${formatNumber(ytdData.providentFund)}</td></tr>
                         <tr><td>ภาษีสะสมรวม</td><td class="amount">${formatNumber(ytdData.tax)}</td></tr>
                         <tr><td>ประกันสังคมสะสมรวม</td><td class="amount">${formatNumber(ytdData.socialSecurity)}</td></tr>
+                        <tr><td>กยศ.สะสมรวม</td><td class="amount">${formatNumber(ytdData.studentLoan)}</td></tr>
                     </table></div>
                 </div>`;
         }
