@@ -436,16 +436,24 @@
                         });
 
                         deductionSheets.forEach(sheetName => {
-                            const employeeRow = dataMaps[sheetName]?.get(employee.normalizedName);
-                            if (employeeRow) {
-                                const value = parseFloat(employeeRow[selectedMonthClean]) || 0;
-                                if (value !== 0) {
-                                    const absValue = Math.abs(value);
-                                    empDataForHtml.deductionItems.push({ item: sheetName, amount: absValue });
-                                    total_deduction += absValue;
-                                }
-                            }
-                        });
+    const employeeRow = dataMaps[sheetName]?.get(employee.normalizedName);
+    if (employeeRow) {
+        const value = parseFloat(employeeRow[selectedMonthClean]) || 0;
+        if (value !== 0) {
+            // ถ้าเป็น "เงินสะสม" และค่าติดลบ ให้ย้ายไปฝั่ง "เงินได้"
+            if (sheetName === "เงินสะสม" && value < 0) {
+                const refundValue = Math.abs(value);
+                empDataForHtml.incomeItems.push({ item: "คืนเงินสะสม", amount: refundValue });
+                total_income += refundValue;
+            } else {
+                // รายการหักปกติ หรือเงินสะสมที่เป็นค่าบวก
+                const absValue = Math.abs(value);
+                empDataForHtml.deductionItems.push({ item: sheetName, amount: absValue });
+                total_deduction += absValue;
+            }
+        }
+    }
+});
 
                         empDataForHtml.totals = {
                             income: total_income,
